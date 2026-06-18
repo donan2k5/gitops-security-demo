@@ -1,0 +1,33 @@
+# Custom ConstraintTemplate (tu viet, khong copy gatekeeper-library)
+# Reject Deployment/Rollout neu spec.replicas > parameters.maxReplicas
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8smaxreplicas
+  annotations:
+    description: >-
+      Custom rule: gioi han so replicas toi da cua mot workload
+      (Deployment hoac Rollout). Vi pham neu spec.replicas > maxReplicas.
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sMaxReplicas
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            maxReplicas:
+              type: integer
+              description: "So replicas toi da duoc phep."
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8smaxreplicas
+
+        violation[{"msg": msg}] {
+          replicas := input.review.object.spec.replicas
+          max_replicas := input.parameters.maxReplicas
+          replicas > max_replicas
+          msg := sprintf("replicas <%v> exceeds maximum allowed of <%v>", [replicas, max_replicas])
+        }

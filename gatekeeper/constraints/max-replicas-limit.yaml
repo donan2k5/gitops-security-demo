@@ -1,0 +1,21 @@
+# Custom: chan Deployment/Rollout co replicas > 5
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sMaxReplicas
+metadata:
+  name: max-replicas-limit
+spec:
+  enforcementAction: warn
+  match:
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"]
+      - apiGroups: ["argoproj.io"]
+        kinds: ["Rollout"]
+    excludedNamespaces:
+      - kube-system
+      - gatekeeper-system
+      - argocd
+      - monitoring
+      - argo-rollouts
+  parameters:
+    maxReplicas: 5
