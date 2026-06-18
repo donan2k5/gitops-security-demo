@@ -19,6 +19,9 @@ spec:
       labels:
         app: api
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
       containers:
         - name: api
           image: ghcr.io/donan2k5/w10-api:0.0.1
