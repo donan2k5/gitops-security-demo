@@ -1,0 +1,19 @@
+# F-01: Cam image tag :latest hoac thieu tag
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sDisallowedTags
+metadata:
+  name: disallow-latest-tag
+spec:
+  enforcementAction: warn
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    excludedNamespaces:
+      - kube-system
+      - gatekeeper-system
+      - argocd
+      - monitoring
+      - argo-rollouts
+  parameters:
+    tags: ["latest"]

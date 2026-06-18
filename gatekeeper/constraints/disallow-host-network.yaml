@@ -1,0 +1,19 @@
+# Cam hostNetwork: true
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPHostNetworkingPorts
+metadata:
+  name: disallow-host-network
+spec:
+  enforcementAction: warn
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    excludedNamespaces:
+      - kube-system
+      - gatekeeper-system
+      - argocd
+      - monitoring
+      - argo-rollouts
+  parameters:
+    hostNetwork: false

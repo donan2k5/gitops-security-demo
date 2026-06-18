@@ -1,0 +1,22 @@
+# F-04: Cam chay root - dung MustRunAsNonRoot (chuan pod-security-restricted)
+# Pod phai set securityContext.runAsNonRoot=true HOAC runAsUser != 0,
+# khong duoc bo trong (mac dinh image se chay UID 0).
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPAllowedUsers
+metadata:
+  name: disallow-root-user
+spec:
+  enforcementAction: warn
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    excludedNamespaces:
+      - kube-system
+      - gatekeeper-system
+      - argocd
+      - monitoring
+      - argo-rollouts
+  parameters:
+    runAsUser:
+      rule: MustRunAsNonRoot
