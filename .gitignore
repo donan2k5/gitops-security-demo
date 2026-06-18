@@ -10,3 +10,6 @@ k8s-monitoring/alertmanager-config.yaml
 
 # OS
 .DS_Store
+
+# Scratch test manifests
+.gk-test/
