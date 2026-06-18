@@ -1,0 +1,19 @@
+# F-02: Bat buoc resources.limits (cpu + memory). Khong gioi han muc max
+# nen omit cpu/memory params - chi check su hien dien cua limits.
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sContainerLimits
+metadata:
+  name: require-container-limits
+spec:
+  enforcementAction: warn
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    excludedNamespaces:
+      - kube-system
+      - gatekeeper-system
+      - argocd
+      - monitoring
+      - argo-rollouts
+  parameters: {}

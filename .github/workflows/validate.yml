@@ -9,7 +9,8 @@ on:
     - 'app-common/**'
     - 'argocd/**'
     - 'rbac/**'
-    # W10 se them: gatekeeper/**, eso/**, signing/**
+    - 'gatekeeper/**'
+    # W10 se them: eso/**, signing/**
 
 jobs:
   validate:
@@ -28,4 +29,4 @@ jobs:
     - name: Validate manifests
       run: |
         kubeconform -strict -summary -ignore-missing-schemas \
-          app-api/ app-analysis/ app-alert/ app-common/ argocd/ rbac/
+          app-api/ app-analysis/ app-alert/ app-common/ argocd/ rbac/ gatekeeper/
