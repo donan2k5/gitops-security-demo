@@ -23,7 +23,10 @@ gì thêm; nếu đặt dài hơn (ví dụ 5 phút) thì sẽ trễ SLA 60s.
 # 1. Đổi giá trị ở nguồn (ở đây là fake provider; trên AWS thật sẽ là lệnh
 #    `aws secretsmanager put-secret-value --secret-id db-password --secret-string ...`)
 kubectl edit secretstore fake-store -n demo
-# tăng spec.provider.fake.data[0].value và .version
+# chỉ đổi spec.provider.fake.data[0].value — ĐỪNG thêm field "version"
+# (xem mục Troubleshooting: provider fake nối "key"+"version" làm key tra cứu nội bộ,
+# nếu version trong SecretStore không khớp version trong ExternalSecret.remoteRef
+# (mặc định rỗng) thì ESO sẽ báo "Secret does not exist")
 
 # 2. Theo dõi K8s Secret cập nhật (kỳ vọng đổi trong khoảng ~30-60s)
 watch -n5 "kubectl get secret db-credentials -n demo -o jsonpath='{.data.password}' | base64 -d"
@@ -42,3 +45,11 @@ không thay đổi trước và sau khi rotate.
   `SecretStore`/`ExternalSecret`. Re-sync `eso` trước, rồi mới `eso-config`.
 - Secret không cập nhật → kiểm tra `kubectl describe externalsecret db-credentials -n demo`
   xem có lỗi sync không, và xác nhận `refreshInterval` chưa bị tăng quá 60s.
+- `UpdateFailed: error retrieving secret ... err: Secret does not exist` → đây là bug
+  thật đã gặp: provider `fake` ghép `key` + `version` thành 1 string làm key tra cứu nội
+  bộ (`fmt.Sprintf("%v%v", key, version)` trong code của ESO). `eso/external-secret.yaml`
+  không khai báo `remoteRef.version` (mặc định `""`), nên `SecretStore` cũng **không được
+  khai báo `version`** cho field tương ứng — nếu `SecretStore` có `version: v1` còn
+  `ExternalSecret` tra cứu với version rỗng, 2 bên tính ra 2 key nội bộ khác nhau
+  (`"db-passwordv1"` vs `"db-password"`) → lookup miss. Fix: bỏ field `version` khỏi
+  `secret-store.yaml`, chỉ đổi `value` khi rotate.

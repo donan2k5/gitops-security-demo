@@ -230,7 +230,7 @@ JSON nội bộ) đại loại:
   "kind": "SecretStore",
   "metadata": { "name": "fake-store", "namespace": "demo" },
   "spec": { "provider": { "fake": { "data": [
-    { "key": "db-password", "value": "initial-password-v1", "version": "v1" }
+    { "key": "db-password", "value": "initial-password-v1" }
   ]}}}
 }
 ```
@@ -375,12 +375,37 @@ Mỗi mũi tên ở trên là 1 lớp hệ thống khác nhau (kubectl, kube-api
 etcd, ESO controller, kubelet, container runtime) — không có lớp nào "biết"
 về AWS Secrets Manager ngoài chính ESO controller ở bước build JSON Secret.
 
+## Bug thật đã gặp: `Secret does not exist` dù YAML "đúng"
+
+Provider `fake` lưu mỗi entry bằng 1 key nội bộ = **ghép dính `key` + `version`**
+(đọc trong source code của ESO, file `pkg/provider/fake/fake.go`):
+
+```go
+func mapKey(key, version string) string {
+    return fmt.Sprintf("%v%v", key, version)
+}
+
+func (p *Provider) GetSecret(_ context.Context, ref esv1beta1.ExternalSecretDataRemoteRef) ([]byte, error) {
+    data, ok := p.config[mapKey(ref.Key, ref.Version)]
+    if !ok || data.Version != ref.Version {
+        return nil, esv1beta1.NoSecretErr // <- chính là "Secret does not exist"
+    }
+    ...
+}
+```
+
+`eso/external-secret.yaml` không khai báo `remoteRef.version` (mặc định `""`), nên
+`SecretStore` cũng phải để `version` rỗng cho field tương ứng — nếu `secret-store.yaml`
+có thêm `version: v1`, key nội bộ lúc lưu là `"db-passwordv1"`, còn key lúc ESO tra cứu
+(version rỗng) là `"db-password"` → 2 chuỗi khác nhau → lookup miss → `NoSecretErr`, dù
+nhìn 2 file YAML qua mắt người vẫn thấy "khớp nhau" (cùng `key: db-password`). Đây là lý
+do `eso/secret-store.yaml` trong repo này **không** có field `version`.
+
 ## Test thử (tóm tắt — xem đầy đủ ở [`docs/runbook-rotate-secret-eso.md`](runbook-rotate-secret-eso.md))
 
 ```bash
-# Đổi giá trị tại nguồn
+# Đổi giá trị tại nguồn — CHỈ đổi value, không thêm field version (xem lý do ở trên)
 kubectl edit secretstore fake-store -n demo
-# tăng spec.provider.fake.data[0].value và .version
 
 # Theo dõi K8s Secret cập nhật
 watch -n5 "kubectl get secret db-credentials -n demo -o jsonpath='{.data.password}' | base64 -d"
