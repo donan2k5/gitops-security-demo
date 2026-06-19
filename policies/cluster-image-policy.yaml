@@ -1,0 +1,18 @@
+# ClusterImagePolicy: chi enforce tren namespace co label policy.sigstore.dev/include=true
+# Khong gan label cho namespace demo trong GitOps - xem docs/runbook-image-sign-verify.md
+# (phai gan SAU khi image dau tien da duoc ky, neu khong se chan luon app dang chay)
+apiVersion: policy.sigstore.dev/v1alpha1
+kind: ClusterImagePolicy
+metadata:
+  name: w10-api-signed
+spec:
+  images:
+    - glob: "ghcr.io/donan2k5/w10-api:**"
+  authorities:
+    - name: cosign-key
+      key:
+        data: |
+          -----BEGIN PUBLIC KEY-----
+          MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEmiSSTqKZu+5p2x7M2qC2SjEPa5ap
+          l5WfIZlg1otRsHoI0WOfjT0Mjo0fkEkGd5zum304ngKdItoWv65AYlYvEQ==
+          -----END PUBLIC KEY-----

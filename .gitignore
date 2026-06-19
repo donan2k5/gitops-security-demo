@@ -3,6 +3,7 @@ k8s-monitoring/email-secret.yaml
 k8s-monitoring/alertmanager-config.yaml
 **/email-secret.yaml
 *.secret.yaml
+signing/cosign.key
 
 # IDE
 .vscode/
@@ -13,3 +14,4 @@ k8s-monitoring/alertmanager-config.yaml
 
 # Scratch test manifests
 .gk-test/
+.claude
