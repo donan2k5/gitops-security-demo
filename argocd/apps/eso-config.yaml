@@ -1,0 +1,24 @@
+# ArgoCD App: SecretStore + ExternalSecret - phai sync SAU eso (operator)
+# vi can CRD SecretStore/ExternalSecret da duoc dang ky truoc.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: eso-config
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/donan2k5/gitops-security-demo
+    path: eso
+    targetRevision: main
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true

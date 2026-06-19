@@ -48,6 +48,14 @@ spec:
             limits:
               cpu: 200m
               memory: 128Mi
+          volumeMounts:
+            - name: db-credentials
+              mountPath: /etc/secrets/db
+              readOnly: true
+      volumes:
+        - name: db-credentials
+          secret:
+            secretName: db-credentials
   strategy:
     canary:
       analysis:
