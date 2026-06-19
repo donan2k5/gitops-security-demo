@@ -24,10 +24,18 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
   ignoreDifferences:
+    # policy-controller (Knative-style) co 1 reconciler rieng tu ghi lai toan bo
+    # noi dung webhooks[] (khong chi caBundle) cho 2 webhook ten "policy.sigstore.dev"
+    # (defaulting + validating cho ConfigMap-driven policy) - GitOps khong "thang"
+    # duoc reconciler nay, nen bo qua toan bo /webhooks de tranh OutOfSync gia.
     - group: admissionregistration.k8s.io
       kind: ValidatingWebhookConfiguration
       jsonPointers:
-        - /webhooks/0/clientConfig/caBundle
+        - /webhooks
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      jsonPointers:
+        - /webhooks
     - group: apiextensions.k8s.io
       kind: CustomResourceDefinition
       jsonPointers:
